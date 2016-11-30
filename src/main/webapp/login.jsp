@@ -13,6 +13,5 @@
 <br>
   <input type='submit' value='login'>
 </form>
-<p>(Use name "me" and password "me".)</p>
 </body>
  </html>
