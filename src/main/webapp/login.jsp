@@ -13,5 +13,6 @@
 <br>
   <input type='submit' value='login'>
 </form>
+<p>Enter an identical username and password (e.g. "admin"/"admin").</p>
 </body>
  </html>
