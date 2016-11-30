@@ -21,7 +21,8 @@ public class CustomLoginModule extends UsernamePasswordLoginModule {
 	}
 
 	/**
-	 * (required) Compares the result of this method with the actual password.
+	 * Compares the result of this method with the entered password.
+	 * If validatePassword isn't overridden here, it will do a String compare.
 	 */
 	@Override
 	protected String getUsersPassword() throws LoginException {
@@ -29,7 +30,6 @@ public class CustomLoginModule extends UsernamePasswordLoginModule {
 		System.out.println("Authenticating user " + getUsername());
 
 		String password = super.getUsername();
-		password = password.toUpperCase();
 		return password;
 	}
 
@@ -37,13 +37,7 @@ public class CustomLoginModule extends UsernamePasswordLoginModule {
 	protected boolean validatePassword(String inputPassword,
 			String expectedPassword) {
 
-		String encryptedInputPassword = (inputPassword == null) ? null
-				: inputPassword.toUpperCase();
-
-		System.out.println("Entered password: " + encryptedInputPassword);
-		System.out.println("Expected password: " + expectedPassword);
-
-		return super.validatePassword(encryptedInputPassword, expectedPassword);
+		return true;
 	}
 
 	/**
