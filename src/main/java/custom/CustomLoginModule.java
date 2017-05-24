@@ -11,33 +11,46 @@ import org.jboss.security.SimpleGroup;
 import org.jboss.security.SimplePrincipal;
 import org.jboss.security.auth.spi.UsernamePasswordLoginModule;
 
+import mock.pwsecurity.PWLoginProfile;
+import mock.pwsecurity.PWPermission;
+import mock.pwsecurity.PWSecurityImpl;
+
 public class CustomLoginModule extends UsernamePasswordLoginModule {
 
-	@SuppressWarnings("rawtypes")
-	public void initialize(Subject subject, CallbackHandler callbackHandler,
-			Map sharedState, Map options) {
+	private static final int BUSINESS_CENTRAL_APP_CODE = 111;
+	private PWSecurityImpl pwSecurity = PWSecurityImpl.getInstance();
 
+	@SuppressWarnings("rawtypes")
+	public void initialize(Subject subject, CallbackHandler callbackHandler, Map sharedState, Map options) {
 		super.initialize(subject, callbackHandler, sharedState, options);
 	}
 
-	/**
-	 * Compares the result of this method with the entered password.
-	 * If validatePassword isn't overridden here, it will do a String compare.
-	 */
 	@Override
 	protected String getUsersPassword() throws LoginException {
+		String[] credentials = getUsernameAndPassword();
+		String password = credentials[1];
 
-		System.out.println("Authenticating user " + getUsername());
-
-		String password = super.getUsername();
 		return password;
 	}
 
 	@Override
-	protected boolean validatePassword(String inputPassword,
-			String expectedPassword) {
+	public boolean login() throws LoginException {
+		boolean authenticated = false;
 
-		return true;
+		try {
+			// call PWSecurity login()
+			// if it returns a non-null PWPermission, set validated to true
+			PWLoginProfile loginProfile = pwSecurity.login(getUsername(), getUsersPassword());
+
+			if (loginProfile != null) {
+				authenticated = true;
+			}
+
+		} catch (Exception e) {
+			System.err.println("Login Exception: " + e.getMessage());
+		}
+
+		return authenticated;
 	}
 
 	/**
@@ -50,15 +63,17 @@ public class CustomLoginModule extends UsernamePasswordLoginModule {
 		SimpleGroup group = new SimpleGroup("Roles");
 
 		try {
-			group.addMember(new SimplePrincipal("user_role"));
-			group.addMember(new SimplePrincipal("admin"));
+			PWPermission[] permissions = pwSecurity.getAllPermissions(getUsername(), BUSINESS_CENTRAL_APP_CODE);
+
+			for (PWPermission permission : permissions) {
+				group.addMember(new SimplePrincipal(Integer.toString(permission.getPWPermissionCode())));
+			}
+
 		} catch (Exception e) {
-			throw new LoginException("Failed to create group member for "
-					+ group);
+			throw new LoginException("Failed to create group member for " + group);
 		}
 
-		System.out.println("Role for user " + getUsername() + ": "
-				+ group.members().nextElement().toString());
+		System.out.println("Roles for user " + getUsername() + ": " + group.members().toString());
 
 		return new Group[] { group };
 	}
