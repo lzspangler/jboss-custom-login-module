@@ -1,10 +1,8 @@
 package custom;
 
+import java.security.Principal;
 import java.security.acl.Group;
-import java.util.Map;
 
-import javax.security.auth.Subject;
-import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.LoginException;
 
 import org.jboss.security.SimpleGroup;
@@ -17,52 +15,54 @@ import mock.pwsecurity.PWSecurityImpl;
 
 public class CustomLoginModule extends UsernamePasswordLoginModule {
 
+	// Make this a property
 	private static final int BUSINESS_CENTRAL_APP_CODE = 111;
+
 	private PWSecurityImpl pwSecurity = PWSecurityImpl.getInstance();
-
-	@SuppressWarnings("rawtypes")
-	public void initialize(Subject subject, CallbackHandler callbackHandler, Map sharedState, Map options) {
-		super.initialize(subject, callbackHandler, sharedState, options);
-	}
-
-	@Override
-	protected String getUsersPassword() throws LoginException {
-		String[] credentials = getUsernameAndPassword();
-		String password = credentials[1];
-
-		return password;
-	}
+	private Principal identity;
 
 	@Override
 	public boolean login() throws LoginException {
 		boolean authenticated = false;
+		super.loginOk = false;
+
+		String[] credentials = getUsernameAndPassword();
+		String username = credentials[0];
+		String password = credentials[1];
 
 		try {
 			// call PWSecurity login()
-			// if it returns a non-null PWPermission, set validated to true
-			PWLoginProfile loginProfile = pwSecurity.login(getUsername(), getUsersPassword());
-
+			// if it returns a non-null PWPermission, set authenticated to true
+			PWLoginProfile loginProfile = pwSecurity.login(username, password);
 			if (loginProfile != null) {
 				authenticated = true;
 			}
-
 		} catch (Exception e) {
-			System.err.println("Login Exception: " + e.getMessage());
+			LoginException loginException = new LoginException(
+					"Failed to authenticate through PWSecurity: " + e.getLocalizedMessage());
+			loginException.initCause(e);
+			throw loginException;
 		}
 
+		try {
+			identity = createIdentity(username);
+		} catch (Exception e) {
+			LoginException loginException = new LoginException(
+					"Failed to create principal: " + e.getLocalizedMessage());
+			loginException.initCause(e);
+			throw loginException;
+		}
+
+		super.loginOk = authenticated;
 		return authenticated;
 	}
 
-	/**
-	 * (required) The groups of the user. Must be at least one group called
-	 * "Roles" for user.
-	 */
 	@Override
 	protected Group[] getRoleSets() throws LoginException {
-
 		SimpleGroup group = new SimpleGroup("Roles");
 
 		try {
+			// retrieve permissions for user and app
 			PWPermission[] permissions = pwSecurity.getAllPermissions(getUsername(), BUSINESS_CENTRAL_APP_CODE);
 
 			for (PWPermission permission : permissions) {
@@ -73,9 +73,19 @@ public class CustomLoginModule extends UsernamePasswordLoginModule {
 			throw new LoginException("Failed to create group member for " + group);
 		}
 
-		System.out.println("Roles for user " + getUsername() + ": " + group.members().toString());
-
 		return new Group[] { group };
+	}
+
+	@Override
+	protected Principal getIdentity() {
+		return this.identity;
+	}
+
+	// This is not used, but required to implement if extending
+	// UsernamePasswordLoginModule
+	@Override
+	protected String getUsersPassword() throws LoginException {
+		return null;
 	}
 
 }
