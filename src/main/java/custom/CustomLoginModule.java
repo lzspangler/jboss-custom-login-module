@@ -15,7 +15,6 @@ import mock.pwsecurity.PWSecurityImpl;
 
 public class CustomLoginModule extends UsernamePasswordLoginModule {
 
-	// Make this a property
 	private static final int BUSINESS_CENTRAL_APP_CODE = 111;
 
 	private PWSecurityImpl pwSecurity = PWSecurityImpl.getInstance();
@@ -68,7 +67,6 @@ public class CustomLoginModule extends UsernamePasswordLoginModule {
 			for (PWPermission permission : permissions) {
 				group.addMember(new SimplePrincipal(Integer.toString(permission.getPWPermissionCode())));
 			}
-
 		} catch (Exception e) {
 			throw new LoginException("Failed to create group member for " + group);
 		}

@@ -12,4 +12,9 @@ public class PWPermission {
 		PWPermissionCode = pWPermissionCode;
 	}
 
+	@Override
+	public String toString() {
+		return "PWPermission [PWPermissionCode=" + PWPermissionCode + "]";
+	}
+
 }

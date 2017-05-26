@@ -20,10 +20,14 @@ public class PWSecurityImpl {
 
 	public PWPermission[] getAllPermissions(String uuname, int appCode) {
 		PWPermission[] permissions = new PWPermission[3];
-
+		permissions[0] = new PWPermission();
 		permissions[0].setPWPermissionCode(0);
+		permissions[1] = new PWPermission();
 		permissions[1].setPWPermissionCode(1);
+		permissions[2] = new PWPermission();
 		permissions[2].setPWPermissionCode(2);
+
+		System.out.println(permissions);
 
 		return permissions;
 	}
