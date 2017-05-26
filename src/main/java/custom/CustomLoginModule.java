@@ -9,9 +9,9 @@ import org.jboss.security.SimpleGroup;
 import org.jboss.security.SimplePrincipal;
 import org.jboss.security.auth.spi.UsernamePasswordLoginModule;
 
-import mock.pwsecurity.PWLoginProfile;
-import mock.pwsecurity.PWPermission;
-import mock.pwsecurity.PWSecurityImpl;
+import com.pwj.cid.security.domain.PWLoginProfile;
+import com.pwj.cid.security.domain.PWPermission;
+import com.pwj.cid.security.domain.PWSecurityImpl;
 
 public class CustomLoginModule extends UsernamePasswordLoginModule {
 

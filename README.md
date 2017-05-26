@@ -22,7 +22,7 @@ Setup
             </security-domain>
 
 ##Note
-In the above be sure to change <path to rolemapping file> to the actual path where the rolemapping-roles.properties will be placed
+In the above be sure to change `<path to rolemapping file>` to the actual path where the rolemapping-roles.properties will be placed
 
 
 4. Enter the proper PWSecurity permission code to Business Central role and group mappings in the rolemapping-roles.properties and copy it to the location corresponding to the standalone config
