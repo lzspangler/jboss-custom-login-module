@@ -70,8 +70,6 @@ public class CustomLoginModule extends UsernamePasswordLoginModule {
 		try {
 			int businessCentralAppCode = Integer.parseInt(loginProperties.getProperty(BUSINESS_CENTRAL_APP_CODE));
 
-			System.out.println("APP CODE: " + businessCentralAppCode);
-
 			// Retrieve permissions for user and app
 			PWPermission[] permissions = pwSecurity.getAllPermissions(getUsername(), businessCentralAppCode);
 
