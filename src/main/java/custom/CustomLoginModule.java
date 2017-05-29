@@ -1,7 +1,9 @@
 package custom;
 
+import java.io.InputStream;
 import java.security.Principal;
 import java.security.acl.Group;
+import java.util.Properties;
 
 import javax.security.auth.login.LoginException;
 
@@ -15,8 +17,10 @@ import com.pwj.cid.security.domain.PWSecurityImpl;
 
 public class CustomLoginModule extends UsernamePasswordLoginModule {
 
-	private static final int BUSINESS_CENTRAL_APP_CODE = 111;
+	private static final String LOGIN_MODULE_PROPERTIES = "login-module.properties";
+	private static final String BUSINESS_CENTRAL_APP_CODE = "business.central.app.code";
 
+	private Properties loginProperties = new Properties();
 	private PWSecurityImpl pwSecurity = PWSecurityImpl.getInstance();
 	private Principal identity;
 
@@ -60,15 +64,24 @@ public class CustomLoginModule extends UsernamePasswordLoginModule {
 	protected Group[] getRoleSets() throws LoginException {
 		SimpleGroup group = new SimpleGroup("Roles");
 
+		// Retrieve login module properties
+		loadLoginProperties();
+
 		try {
-			// retrieve permissions for user and app
-			PWPermission[] permissions = pwSecurity.getAllPermissions(getUsername(), BUSINESS_CENTRAL_APP_CODE);
+			int businessCentralAppCode = Integer.parseInt(loginProperties.getProperty(BUSINESS_CENTRAL_APP_CODE));
+
+			System.out.println("APP CODE: " + businessCentralAppCode);
+
+			// Retrieve permissions for user and app
+			PWPermission[] permissions = pwSecurity.getAllPermissions(getUsername(), businessCentralAppCode);
 
 			for (PWPermission permission : permissions) {
 				group.addMember(new SimplePrincipal(Integer.toString(permission.getPWPermissionCode())));
 			}
 		} catch (Exception e) {
-			throw new LoginException("Failed to create group member for " + group);
+			LoginException loginException = new LoginException("Failed to create group member for " + group);
+			loginException.initCause(e);
+			throw loginException;
 		}
 
 		return new Group[] { group };
@@ -84,6 +97,21 @@ public class CustomLoginModule extends UsernamePasswordLoginModule {
 	@Override
 	protected String getUsersPassword() throws LoginException {
 		return null;
+	}
+
+	private void loadLoginProperties() throws LoginException {
+		try {
+			InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(LOGIN_MODULE_PROPERTIES);
+
+			if (inputStream != null) {
+				loginProperties.load(inputStream);
+			}
+		} catch (Exception e) {
+			LoginException loginException = new LoginException(
+					"Failed to load login module properties: " + e.getLocalizedMessage());
+			loginException.initCause(e);
+			throw loginException;
+		}
 	}
 
 }
