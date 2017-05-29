@@ -1,0 +1,6 @@
+<module xmlns="urn:jboss:module:1.1" name="conf">
+    <resources>
+        <resource-root path="properties"/>
+    </resources>
+</module>
+
